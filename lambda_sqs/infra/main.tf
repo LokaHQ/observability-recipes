@@ -49,7 +49,9 @@ resource "aws_lambda_function" "consumer_lambda" {
 
     environment {
         variables = {
-            AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument"
+            AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument",
+            OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4318",
+            OTEL_METRICS_EXPORTER = "otlp"
         }
     }
 
@@ -63,5 +65,33 @@ resource "aws_lambda_event_source_mapping" "sqs_trigger_consumer_lambda" {
     function_name = aws_lambda_function.consumer_lambda.arn
     batch_size = 1
     enabled = true
+}
+
+
+resource "aws_cloudwatch_dashboard" "main_dashboard" {
+    dashboard_name = "ExampleDashboard"
+
+    dashboard_body = jsonencode({
+        widgets = [
+           {
+            "type": "metric",
+            "x": 12,
+            "y": 0,
+            "width": 6,
+            "height": 6,
+            "properties": {
+                "metrics": [
+                    [ "Lambda/ExampleApplication", "temperature", "service.name", "ConsumerLambda", "OTelLib", "lambda_function" ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "eu-central-1",
+                "stat": "Average",
+                "period": 60,
+                "title": "Average temperature"
+            }
+        }
+        ]
+    })
 }
 
