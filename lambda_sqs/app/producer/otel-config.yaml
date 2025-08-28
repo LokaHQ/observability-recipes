@@ -7,9 +7,9 @@ receivers:
 exporters:
   awsxray:
   awsemf:
-    namespace: Lambda/AWSOTel/Application
+    namespace: Lambda/ExampleApplication
     log_group_name: '/aws/lambda/application/metrics'
-    dimension_rollup_option: NoDimensionRollup
+    dimension_rollup_option: SingleDimensionRollupOnly
     resource_to_telemetry_conversion:
       enabled: true
 
