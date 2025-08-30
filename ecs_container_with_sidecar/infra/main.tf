@@ -90,7 +90,7 @@ resource "aws_ecs_task_definition" "app_with_sidecar" {
           value = var.datadog_site
         }
       ]
-      command = ["--config-from-env=AOT_CONFIG_CONTENT"]
+
       logConfiguration = {
         logDriver = "awslogs"
         options = {
