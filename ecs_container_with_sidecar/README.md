@@ -18,9 +18,7 @@ export REGISTRY_NAME="fastapi-app"
 export TAG="v1.0"
 ```
 
-After that run the `build_and_push_image.sh` script. 
-
-The script will login to ECR, build the docker image, tag it and push the tagged version to ECR.
+Run `make create_image` - The script will login to ECR, build the docker image, tag it and push the tagged version to ECR.
 
 
 Define the variables in `infra/terraform.tfvars`:
@@ -33,7 +31,7 @@ Define the variables in `infra/terraform.tfvars`:
 
 ### Deployment 
 
-- `make create_image` - to create a Docker image and push to ECR.
+
 - `make plan` - to see the planned infrastructure changes without applying them.
 - ` make deploy` - to deploy changes 
 
