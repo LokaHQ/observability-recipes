@@ -1,0 +1,33 @@
+receivers:
+  otlp:
+    protocols:
+      grpc: {}
+      http: {}
+
+processors:
+  batch: {}
+
+exporters:
+  awsxray: {}
+  awsemf:
+    namespace: ecs/exampleApp  
+    log_group_name: '/ecs/exampleApp//metrics'
+    dimension_rollup_option: SingleDimensionRollupOnly
+    resource_to_telemetry_conversion:
+      enabled: true
+
+  datadog:
+    api:
+      key: ${DD_API_KEY}
+      site: ${DD_SITE}  
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsxray, datadog]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awsemf, datadog]
