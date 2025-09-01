@@ -1,26 +1,6 @@
 provider "aws" {
-  region = "eu-central-1"
+  region = var.region
 }
-
-provider "docker" {}
-
-### variables
-
-variable "vpc_id" {
-    default = "vpc-03f0acf4be0078039"
-}
-variable "private_subnets" {
-  type = list(string)
-  default = ["subnet-0b8ae00ecebad7708", "subnet-048b86c8f1b8acb86", "subnet-023c3b4e59d38385b" ]
-}
-
-variable "datadog_api_key" {
-    default = "asdasd"
-}
-variable "datadog_site" {
-  default = "datadoghq.com"
-}
-
 
 ###  CloudWatch ###
 
@@ -43,10 +23,10 @@ resource "aws_ecs_cluster" "app_cluster" {
 }
 
 resource "aws_ssm_parameter" "otel_config" {
-  name         = "/adot/config"
-  type         = "String"
-  value        = file("otel-config.yaml")
-  description  = "Otel configuration for ECS service"
+  name        = "/adot/config"
+  type        = "String"
+  value       = file("otel-config.yaml")
+  description = "Otel configuration for ECS service"
 }
 
 resource "aws_ecs_task_definition" "app_with_sidecar" {
@@ -56,20 +36,20 @@ resource "aws_ecs_task_definition" "app_with_sidecar" {
   cpu                      = "512"
   memory                   = "1024"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
     {
       name      = "otel-collector"
-      image = "public.ecr.aws/aws-observability/aws-otel-collector:latest"
+      image     = "public.ecr.aws/aws-observability/aws-otel-collector:latest"
       essential = true
-      cpu = 256
-      memory = 256
-      essential = true
+      cpu       = 256
+      memory    = 256
       secrets = [
-      {
-      name  = "AOT_CONFIG_CONTENT"
-      valueFrom = aws_ssm_parameter.otel_config.arn
-       }]
+        {
+          name      = "AOT_CONFIG_CONTENT"
+          valueFrom = aws_ssm_parameter.otel_config.arn
+      }]
       portMappings = [
         {
           containerPort = 4317
@@ -95,11 +75,37 @@ resource "aws_ecs_task_definition" "app_with_sidecar" {
         logDriver = "awslogs"
         options = {
           awslogs-group         = aws_cloudwatch_log_group.app_logs.name
-          awslogs-region        = "eu-central-1"
+          awslogs-region        = var.region
           awslogs-stream-prefix = "otel"
         }
       }
 
+    },
+    {
+      name      = "api"
+      image     = var.ecr_image
+      essential = true
+      cpu       = 256
+      memory    = 256
+
+      portMappings = [{
+        containerPort = 8000
+        protocol      = "tcp"
+      }]
+      environment = [
+        {
+          name  = "OTEL_PYTHON_DISABLED_INSTRUMENTATIONS"
+          value = "grpc,requests,httpx"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-group         = aws_cloudwatch_log_group.app_logs.name
+          awslogs-region        = var.region
+          awslogs-stream-prefix = "api"
+        }
+      }
     }
   ])
 }
@@ -112,8 +118,8 @@ resource "aws_ecs_service" "api_service" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = var.private_subnets
-    assign_public_ip = true # set false if NAT
+    subnets          = var.public_subnets
+    assign_public_ip = true
     security_groups  = [aws_security_group.app_sg.id]
   }
 
@@ -128,8 +134,8 @@ resource "aws_security_group" "app_sg" {
   vpc_id = var.vpc_id
 
   ingress {
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = 8000
+    to_port     = 8000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
