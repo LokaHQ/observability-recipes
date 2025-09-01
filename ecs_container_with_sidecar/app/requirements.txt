@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+opentelemetry-instrumentation-fastapi
+opentelemetry-sdk 
+opentelemetry-api
+opentelemetry-exporter-otlp
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-asgi
+opentelemetry-instrumentation-requests

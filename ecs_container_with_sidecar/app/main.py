@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from opentelemetry import trace
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.resources import Resource, SERVICE_NAME
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -8,24 +8,27 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 app = FastAPI()
 
-resource = Resource(attributes={
+# Define resource with service name
+resource = Resource.create({
     SERVICE_NAME: "my-fastapi-app"
 })
 
-trace.set_tracer_provider(TracerProvider(resource=resource))
-tracer = trace.get_tracer(__name__)
+# Set up tracer provider
+provider = TracerProvider(resource=resource)
 
-# OTLP exporter pointing to local OTEL collector
-otlp_exporter = OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True)
-span_processor = BatchSpanProcessor(otlp_exporter)
-trace.get_tracer_provider().add_span_processor(span_processor)
+# Configure OTLP exporter to talk to the sidecar
+otlp_exporter = OTLPSpanExporter(
+    endpoint="http://localhost:4317",
+    insecure=True
+)
+provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
+# Set global provider
+trace.set_tracer_provider(provider)
 
+# Instrument FastAPI
 FastAPIInstrumentor.instrument_app(app)
 
-
-@app.get("/")
+@app.get("/health-check")
 def index():
-    return {
-        "status": "OK"
-    }
+    return {"status": "OK"}
