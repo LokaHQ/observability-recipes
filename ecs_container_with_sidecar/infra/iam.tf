@@ -22,8 +22,8 @@ resource "aws_iam_policy" "ecs_ssm_read" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect   = "Allow",
-        Action   = [
+        Effect = "Allow",
+        Action = [
           "ssm:GetParameters",
           "ssm:GetParameter",
           "ssm:GetParametersByPath"
@@ -42,4 +42,14 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_attach" {
 resource "aws_iam_role_policy_attachment" "ecs_task_ssm_attach" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = aws_iam_policy.ecs_ssm_read.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_xray_attach" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_cloudwatch_attach" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
 }
