@@ -33,7 +33,7 @@ resource "aws_iam_policy" "ecs_ssm_read_sqs_write" {
       {
         Effect   = "Allow",
         Action   = ["sqs:SendMessage"],
-        Resource = "*"
+        Resource = aws_sqs_queue.standard_queue.arn
 
     }]
   })
