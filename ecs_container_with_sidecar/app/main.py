@@ -12,7 +12,6 @@ from opentelemetry.sdk.extension.aws.trace import AwsXRayIdGenerator
 from opentelemetry.instrumentation.botocore import BotocoreInstrumentor
 import boto3
 import json
-import random
 import os
 from typing import Dict
 
