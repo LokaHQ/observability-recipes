@@ -96,6 +96,10 @@ resource "aws_ecs_task_definition" "app_with_sidecar" {
         {
           name  = "OTEL_PYTHON_DISABLED_INSTRUMENTATIONS"
           value = "grpc,requests,httpx"
+        },
+        {
+          name  = "QUEUE_URL"
+          value = aws_sqs_queue.standard_queue.id
         }
       ]
       logConfiguration = {
@@ -147,4 +151,5 @@ resource "aws_security_group" "app_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
 
