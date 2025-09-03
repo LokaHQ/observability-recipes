@@ -19,7 +19,7 @@ resource "aws_ecr_repository" "fastapi" {
 ###############################
 
 resource "aws_ecs_cluster" "app_cluster" {
-  name = "otel-sidecar-cluster"
+  name = "api-cluster"
 }
 
 resource "aws_ssm_parameter" "otel_config" {
@@ -115,7 +115,7 @@ resource "aws_ecs_task_definition" "app_with_sidecar" {
 }
 
 resource "aws_ecs_service" "api_service" {
-  name            = "app-otel-service"
+  name            = "api-service"
   cluster         = aws_ecs_cluster.app_cluster.id
   task_definition = aws_ecs_task_definition.app_with_sidecar.arn
   desired_count   = 1
