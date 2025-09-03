@@ -1,5 +1,6 @@
 fastapi
 uvicorn[standard]
+boto3
 opentelemetry-instrumentation-fastapi
 opentelemetry-sdk 
 opentelemetry-api
@@ -7,3 +8,6 @@ opentelemetry-exporter-otlp
 opentelemetry-instrumentation-fastapi
 opentelemetry-instrumentation-asgi
 opentelemetry-instrumentation-requests
+opentelemetry-sdk-extension-aws
+opentelemetry-propagator-aws-xray
+opentelemetry-instrumentation-botocore
